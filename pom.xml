@@ -33,6 +33,7 @@
     
     <modules>
         <module>authorization-server</module>
+        <module>ping-api</module>
     </modules>
     
 </project>
