@@ -37,6 +37,18 @@
             <artifactId>spring-boot-starter-jetty</artifactId>
         </dependency>
         
+        <!-- Swagger UI -->
+        
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+        </dependency>     
+        
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+        
     </dependencies>
     
     <!-- Package as an executable jar -->

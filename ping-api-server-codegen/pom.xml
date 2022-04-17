@@ -19,86 +19,41 @@
 
     <dependencies>
         <dependency>
+            <groupId>de.serdioa.oauth</groupId>
+            <artifactId>ping-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
         </dependency>
-
-        
-        <!--        
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring.boot.vesion}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jetty</artifactId>
-            <version>${spring.boot.vesion}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>${springfox.swagger.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
-            <version>${springfox.swagger.version}</version>
-        </dependency>
-        -->
-        
-        <!--        
-                <dependency>
-                    <groupId>com.fasterxml.jackson.datatype</groupId>
-                    <artifactId>jackson-datatype-jsr310</artifactId>
-                    <version>${jackson.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                    <version>${jackson.version}</version>
-                </dependency>
-        
-                <dependency>
-                    <groupId>org.openapitools</groupId>
-                    <artifactId>jackson-databind-nullable</artifactId>
-                    <version>0.2.1</version>
-                </dependency>
-        
-        -->
 
         <dependency>
             <groupId>javax.validation</groupId>
@@ -178,7 +133,7 @@
                                 <dateLibrary>java8</dateLibrary>
                                 <java8>true</java8>
                                 <useTags>true</useTags>
-                                
+
                                 <delegatePattern>true</delegatePattern>
                             </configOptions>
                         </configuration>
