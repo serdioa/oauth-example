@@ -18,6 +18,7 @@
         <jackson.version>2.13.2</jackson.version>
         <spring.boot.version>2.6.6</spring.boot.version>
         <spring.version>5.3.19</spring.version>
+        <spring.security.version>5.6.3</spring.security.version>
         <springfox.swagger.version>2.9.2</springfox.swagger.version>
     </properties>
 
@@ -30,6 +31,24 @@
                 <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-oauth2-core</artifactId>
+                <version>${spring.security.version}</version>
             </dependency>
 
             <dependency>
@@ -48,6 +67,12 @@
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-ui</artifactId>
                 <version>1.6.7</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.36</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
