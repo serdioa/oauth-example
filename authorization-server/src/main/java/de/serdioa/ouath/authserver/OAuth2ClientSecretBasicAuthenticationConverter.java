@@ -4,9 +4,11 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
@@ -22,8 +24,23 @@ public class OAuth2ClientSecretBasicAuthenticationConverter extends OAuth2Client
 
 
     @Override
-    public Authentication convert(HttpServletRequest request) {
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+    protected ClientAuthenticationMethod getClientAuthenticationMethod() {
+        return ClientAuthenticationMethod.CLIENT_SECRET_BASIC;
+    }
+
+
+    @Override
+    protected Authentication convertClientPrincipal(HttpServletRequest request) {
+        List<String> authorizationHeaderValues = Collections.list(request.getHeaders(HttpHeaders.AUTHORIZATION));
+        if (authorizationHeaderValues.isEmpty()) {
+            // No HTTP header "Authorization".
+            return null;
+        }
+        if (authorizationHeaderValues.size() != 1) {
+            throw this.invalidRequest("More than 1 HTTP header 'Authorization'");
+        }
+        
+        String header = authorizationHeaderValues.get(0);
         if (!StringUtils.hasText(header)) {
             // Null or empty string.
             return null;
@@ -40,7 +57,7 @@ public class OAuth2ClientSecretBasicAuthenticationConverter extends OAuth2Client
         }
 
         if (headerParts.length != 2) {
-            throw this.invalidRequest("HTTP header 'Basic' without value");
+            throw this.invalidRequest("HTTP header 'Authorization' with type 'Basic' without value");
         }
 
         byte[] decodedCredentials;
@@ -48,14 +65,14 @@ public class OAuth2ClientSecretBasicAuthenticationConverter extends OAuth2Client
             byte[] encodedCredentials = headerParts[1].getBytes(StandardCharsets.UTF_8);
             decodedCredentials = Base64.getDecoder().decode(encodedCredentials);
         } catch (IllegalArgumentException ex) {
-            throw this.invalidRequest("Value of the HTTP header 'Basic' is not valid Base64");
+            throw this.invalidRequest("HTTP header 'Authorization' with type 'Basic' has a value that is not valid Base64");
         }
 
         String decodedCredentialsString = new String(decodedCredentials, StandardCharsets.UTF_8);
         String[] credentials = decodedCredentialsString.split(":", 2);
         if (credentials.length != 2) {
             throw this
-                    .invalidRequest("Value of the HTTP header 'Basic' does not contain separator ':' between client ID and secret");
+                    .invalidRequest("HTTP header 'Authorization' with type 'Basic' has a value that does not contain a separator ':' between client ID and secret");
         }
 
         String clientId;
@@ -63,7 +80,7 @@ public class OAuth2ClientSecretBasicAuthenticationConverter extends OAuth2Client
             clientId = URLDecoder.decode(credentials[0], StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
             throw this
-                    .invalidRequest("Client ID in the HTTP header 'Basic' is not valid application/x-www-form-urlencoded");
+                    .invalidRequest("HTTP header 'Authorization' with type 'Basic' contains a client ID that is not valid application/x-www-form-urlencoded");
         }
 
         String clientSecret;
@@ -71,11 +88,9 @@ public class OAuth2ClientSecretBasicAuthenticationConverter extends OAuth2Client
             clientSecret = URLDecoder.decode(credentials[1], StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
             throw this
-                    .invalidRequest("Client secret in the HTTP header 'Basic' is not valid application/x-www-form-urlencoded");
+                    .invalidRequest("HTTP header 'Authorization' with type 'Basic' contains a client secret that is not valid application/x-www-form-urlencoded");
         }
 
-        // TODO: add scopes
-        return new OAuth2ClientCredentialsAuthenticationToken(clientId, clientSecret,
-                ClientAuthenticationMethod.CLIENT_SECRET_BASIC, Collections.emptySet(), Collections.emptyMap());
+        return new UsernamePasswordAuthenticationToken(clientId, clientSecret);
     }
 }

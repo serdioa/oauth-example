@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.Assert;
 
@@ -16,25 +18,23 @@ import org.springframework.util.Assert;
  */
 public class OAuth2ClientCredentialsAuthenticationToken extends AbstractAuthenticationToken {
 
-    private final String clientId;
-    private final Object clientCredentials;
+    private final Authentication clientPrincipal;
     private final ClientAuthenticationMethod clientAuthenticationMethod;
     private final Set<String> scopes;
     private final Map<String, Object> additionalParameters;
 
 
-    public OAuth2ClientCredentialsAuthenticationToken(String clientId, Object clientCredentials,
+    public OAuth2ClientCredentialsAuthenticationToken(Authentication clientPrincipal,
             ClientAuthenticationMethod clientAuthenticationMethod, final Set<String> scopes,
             Map<String, Object> additionalParameters) {
         super(Collections.emptyList());
 
-        Assert.hasText(clientId, "clientId is required");
+        Assert.notNull(clientPrincipal, "clientPrincipal is required");
         Assert.notNull(clientAuthenticationMethod, "clientAuthenticationMethod is required");
         Assert.notNull(scopes, "scopes is required");
         Assert.notNull(additionalParameters, "additionalParameters is required");
 
-        this.clientId = clientId;
-        this.clientCredentials = clientCredentials;
+        this.clientPrincipal = clientPrincipal;
         this.clientAuthenticationMethod = clientAuthenticationMethod;
         this.scopes = Collections.unmodifiableSet(new HashSet<>(scopes));
         this.additionalParameters = Collections.unmodifiableMap(new HashMap<>(additionalParameters));
@@ -43,13 +43,22 @@ public class OAuth2ClientCredentialsAuthenticationToken extends AbstractAuthenti
 
     @Override
     public Object getPrincipal() {
-        return this.clientId;
+        return this.clientPrincipal.getPrincipal();
     }
 
 
     @Override
     public Object getCredentials() {
-        return this.clientCredentials;
+        return this.clientPrincipal.getCredentials();
+    }
+
+
+    @Override
+    public void eraseCredentials() {
+        super.eraseCredentials();
+        if (this.clientPrincipal instanceof CredentialsContainer) {
+            ((CredentialsContainer) this.clientPrincipal).eraseCredentials();
+        }
     }
 
 

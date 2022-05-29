@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
@@ -20,8 +21,42 @@ public class OAuth2ClientSecretPostAuthenticationConverterTest {
 
     @BeforeEach
     public void setUp() {
+        // Configuration applies to most tests.
+        // Those few tests which are an exception, has to reset the header.
         this.request = new MockHttpServletRequest();
+        this.request.addParameter(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
+
         this.converter = new OAuth2ClientSecretPostAuthenticationConverter();
+    }
+
+
+    // The request parameter "grant_type" is missing.
+    @Test
+    public void testConverterNoGrantType() {
+        this.request.removeParameter(OAuth2ParameterNames.GRANT_TYPE);
+        assertNull(this.converter.convert(this.request));
+    }
+
+
+    // The request parameter "grant_type" differs from "client_credentials".
+    @Test
+    public void testConverterUnsupportedGrantType() {
+        this.request.removeParameter(OAuth2ParameterNames.GRANT_TYPE);
+        this.request.addParameter(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
+        assertNull(this.converter.convert(this.request));
+    }
+
+
+    // The request parameter "grant_type" appears more then once.
+    @Test
+    public void testConverterMultipleGrantType() {
+        this.request.addParameter(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
+
+        OAuth2AuthenticationException ex = assertThrows(OAuth2AuthenticationException.class, () -> {
+            this.converter.convert(this.request);
+        });
+
+        assertEquals(OAuth2ErrorCodes.INVALID_REQUEST, ex.getError().getErrorCode());
     }
 
 

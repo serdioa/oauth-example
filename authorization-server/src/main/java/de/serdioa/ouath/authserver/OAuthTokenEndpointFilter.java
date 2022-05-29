@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -61,7 +62,7 @@ public class OAuthTokenEndpointFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         OAuth2ClientCredentialsAuthenticationToken authenticationToken =
-                new OAuth2ClientCredentialsAuthenticationToken("my-client-id", "my-client-secret",
+                new OAuth2ClientCredentialsAuthenticationToken(new UsernamePasswordAuthenticationToken("my-client-id", "my-client-secret"),
                         ClientAuthenticationMethod.CLIENT_SECRET_BASIC, Set.of("aaa", "bbb", "ccc"),
                         Collections.emptyMap());
         OAuth2AccessTokenAuthenticationToken accessToken =

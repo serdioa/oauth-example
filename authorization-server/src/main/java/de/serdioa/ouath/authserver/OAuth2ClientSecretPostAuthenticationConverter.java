@@ -1,9 +1,9 @@
 package de.serdioa.ouath.authserver;
 
-import java.util.Collections;
-
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.StringUtils;
@@ -16,14 +16,26 @@ import org.springframework.util.StringUtils;
 public class OAuth2ClientSecretPostAuthenticationConverter extends OAuth2ClientSecretAbstractAuthenticationConverter {
 
     @Override
-    public Authentication convert(HttpServletRequest request) {
+    protected ClientAuthenticationMethod getClientAuthenticationMethod() {
+        return ClientAuthenticationMethod.CLIENT_SECRET_POST;
+    }
+
+
+    @Override
+    protected Authentication convertClientPrincipal(HttpServletRequest request) {
+        String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
+        if (AuthorizationGrantType.CLIENT_CREDENTIALS.equals(grantType)) {
+            // This request is not for a client credentials.
+            return null;
+        }
+
         String[] clientIdParameters = request.getParameterValues(OAuth2ParameterNames.CLIENT_ID);
         if (clientIdParameters == null) {
             // This request does not contain OAuth2 Client Secret authorization parameters at all.
             return null;
         }
         if (clientIdParameters.length != 1) {
-            throw this.invalidRequest("More then 1 request parameter 'client_id'");
+            throw this.invalidRequest("More than 1 request parameter 'client_id'");
         }
 
         String clientId = clientIdParameters[0];
@@ -38,13 +50,11 @@ public class OAuth2ClientSecretPostAuthenticationConverter extends OAuth2ClientS
             // RFC 6749, section 2.3: The client MAY omit the parameter if the client secret is an empty string.
             clientSecret = "";
         } else if (clientSecretParameters.length != 1) {
-            throw this.invalidRequest("More then 1 request parameter 'client_secret'");
+            throw this.invalidRequest("More than 1 request parameter 'client_secret'");
         } else {
             clientSecret = clientSecretParameters[0];
         }
 
-        // TODO: add scopes
-        return new OAuth2ClientCredentialsAuthenticationToken(clientId, clientSecret,
-                ClientAuthenticationMethod.CLIENT_SECRET_BASIC, Collections.emptySet(), Collections.emptyMap());
+        return new UsernamePasswordAuthenticationToken(clientId, clientSecret);
     }
 }
