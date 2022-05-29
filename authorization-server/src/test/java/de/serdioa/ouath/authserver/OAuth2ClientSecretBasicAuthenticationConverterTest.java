@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
@@ -190,6 +191,7 @@ public class OAuth2ClientSecretBasicAuthenticationConverterTest {
                 (OAuth2ClientCredentialsAuthenticationToken) this.converter.convert(this.request);
         assertEquals("aBc", token.getPrincipal());
         assertEquals("DeF", token.getCredentials());
+        assertEquals(ClientAuthenticationMethod.CLIENT_SECRET_BASIC, token.getClientAuthenticationMethod());
     }
 
 
@@ -209,6 +211,7 @@ public class OAuth2ClientSecretBasicAuthenticationConverterTest {
                 (OAuth2ClientCredentialsAuthenticationToken) this.converter.convert(this.request);
         assertEquals(clientId, token.getPrincipal());
         assertEquals(clientSecret, token.getCredentials());
+        assertEquals(ClientAuthenticationMethod.CLIENT_SECRET_BASIC, token.getClientAuthenticationMethod());
     }
 
 

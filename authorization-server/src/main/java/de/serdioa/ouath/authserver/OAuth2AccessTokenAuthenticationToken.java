@@ -28,8 +28,8 @@ public class OAuth2AccessTokenAuthenticationToken extends AbstractAuthentication
             Map<String, Object> additionalParameters) {
         super(principal.getAuthorities());
 
-        Assert.notNull(accessToken, "accessToken can not be null");
-        Assert.notNull(additionalParameters, "additionalParameters can not be null");
+        Assert.notNull(accessToken, "accessToken is required");
+        Assert.notNull(additionalParameters, "additionalParameters is required");
 
         this.principal = principal;
         this.accessToken = accessToken;

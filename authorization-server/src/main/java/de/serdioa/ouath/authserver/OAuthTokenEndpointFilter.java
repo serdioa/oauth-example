@@ -42,7 +42,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class OAuthTokenEndpointFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthTokenEndpointFilter.class);
-
+    
     private final HttpMessageConverter<OAuth2AccessTokenResponse> tokenResponseConverter =
             new OAuth2AccessTokenResponseHttpMessageConverter();
     private final HttpMessageConverter<OAuth2Error> errorResponseConverter =

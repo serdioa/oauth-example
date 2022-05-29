@@ -24,16 +24,14 @@ public class OAuth2ClientCredentialsAuthenticationProvider implements Authentica
         Authentication autnentication = new UsernamePasswordAuthenticationToken(
                 (String) clientCredentialsToken.getPrincipal(),
                 (String) clientCredentialsToken.getCredentials());
+        Set<String> requestedScopes = clientCredentialsToken.getScopes();
 
         Map<String, Object> additionalParameters = clientCredentialsToken.getAdditionalParameters();
 
         Instant now = Instant.now();
         Instant expires = now.plus(1, ChronoUnit.HOURS);
         OAuth2AccessToken accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER,
-                "TOKENVALUE",
-                now,
-                expires,
-                Set.of("role_one", "role_two"));
+                "TOKENVALUE", now, expires, requestedScopes);
 
         OAuth2AccessTokenAuthenticationToken authenticationToken =
                 new OAuth2AccessTokenAuthenticationToken(autnentication, accessToken, additionalParameters);
