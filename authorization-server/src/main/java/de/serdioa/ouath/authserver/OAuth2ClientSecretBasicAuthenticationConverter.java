@@ -6,24 +6,19 @@ import java.util.Base64;
 import java.util.Collections;
 
 import javax.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
-import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.util.StringUtils;
 
 
-public class OAuth2ClientSecretBasicAuthenticationConverter implements AuthenticationConverter {
-
-    private static final Logger logger = LoggerFactory.getLogger(OAuth2ClientSecretBasicAuthenticationConverter.class);
+/**
+ * Attempts to extract OAuth2 Client Secret request token from a request assuming HTTP Basic authorization.
+ */
+public class OAuth2ClientSecretBasicAuthenticationConverter extends OAuth2ClientSecretAbstractAuthenticationConverter {
 
     // The constant for the "Basic" authentication scheme in the HTTP header.
     private static final String AUTHENTICATION_SCHEME_BASIC = "Basic";
-
-    private OAuth2ExceptionHelper exceptionHelper = new OAuth2ExceptionHelper();
 
 
     @Override
@@ -45,9 +40,7 @@ public class OAuth2ClientSecretBasicAuthenticationConverter implements Authentic
         }
 
         if (headerParts.length != 2) {
-            String id = this.exceptionHelper.nextExceptionId();
-            logger.info("{}: invalid Authorization header, Basic authorization without value", id);
-            throw this.exceptionHelper.authenticationException(OAuth2ErrorCodes.INVALID_REQUEST, id);
+            throw this.invalidRequest("HTTP header 'Basic' without value");
         }
 
         byte[] decodedCredentials;
@@ -55,37 +48,30 @@ public class OAuth2ClientSecretBasicAuthenticationConverter implements Authentic
             byte[] encodedCredentials = headerParts[1].getBytes(StandardCharsets.UTF_8);
             decodedCredentials = Base64.getDecoder().decode(encodedCredentials);
         } catch (IllegalArgumentException ex) {
-            String id = this.exceptionHelper.nextExceptionId();
-            logger.info("{}: Basic authorization is not in valid Base64", id);
-            throw this.exceptionHelper.authenticationException(OAuth2ErrorCodes.INVALID_REQUEST, id);
+            throw this.invalidRequest("Value of the HTTP header 'Basic' is not valid Base64");
         }
 
         String decodedCredentialsString = new String(decodedCredentials, StandardCharsets.UTF_8);
         String[] credentials = decodedCredentialsString.split(":", 2);
         if (credentials.length != 2) {
-            String id = this.exceptionHelper.nextExceptionId();
-            logger.info("{}: Basic authorization can not be split on client ID and secret", id);
-            throw this.exceptionHelper.authenticationException(OAuth2ErrorCodes.INVALID_REQUEST, id);
+            throw this
+                    .invalidRequest("Value of the HTTP header 'Basic' does not contain separator ':' between client ID and secret");
         }
 
         String clientId;
         try {
             clientId = URLDecoder.decode(credentials[0], StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
-            String id = this.exceptionHelper.nextExceptionId();
-            logger
-                    .info("{}: Basic authorization contains client ID which is not valid application/x-www-form-urlencoded", id);
-            throw this.exceptionHelper.authenticationException(OAuth2ErrorCodes.INVALID_REQUEST, id);
+            throw this
+                    .invalidRequest("Client ID in the HTTP header 'Basic' is not valid application/x-www-form-urlencoded");
         }
 
         String clientSecret;
         try {
             clientSecret = URLDecoder.decode(credentials[1], StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
-            String id = this.exceptionHelper.nextExceptionId();
-            logger
-                    .info("{}: Basic authorization contains client secret which is not valid application/x-www-form-urlencoded", id);
-            throw this.exceptionHelper.authenticationException(OAuth2ErrorCodes.INVALID_REQUEST, id);
+            throw this
+                    .invalidRequest("Client secret in the HTTP header 'Basic' is not valid application/x-www-form-urlencoded");
         }
 
         // TODO: add scopes

@@ -32,23 +32,32 @@ public class OAuth2ExceptionHelper {
 
     public OAuth2Error error(String errorCode) {
         String id = nextExceptionId();
-        return this.error(errorCode, id);
+        return this.error(errorCode, id, null);
     }
 
 
-    public OAuth2Error error(String errorCode, String id) {
-        return new OAuth2Error(errorCode, id, OAUTH2_ERROR_DESCRIPTION_URI);
+    public OAuth2Error error(String errorCode, String id, String description) {
+        String message;
+        if (id != null && description != null) {
+            message = id + " - " + description;
+        } else if (id != null) {
+            message = id;
+        } else {
+            message = description;
+        }
+
+        return new OAuth2Error(errorCode, message, OAUTH2_ERROR_DESCRIPTION_URI);
     }
 
 
     public OAuth2AuthenticationException authenticationException(String errorCode) {
         String id = nextExceptionId();
-        return this.authenticationException(errorCode, id);
+        return this.authenticationException(errorCode, id, null);
     }
 
 
-    public OAuth2AuthenticationException authenticationException(String errorCode, String id) {
-        OAuth2Error error = this.error(errorCode, id);
+    public OAuth2AuthenticationException authenticationException(String errorCode, String id, String description) {
+        OAuth2Error error = this.error(errorCode, id, description);
         return new OAuth2AuthenticationException(error);
     }
 }
