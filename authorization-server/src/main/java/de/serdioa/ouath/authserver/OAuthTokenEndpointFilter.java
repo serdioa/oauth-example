@@ -3,10 +3,10 @@ package de.serdioa.ouath.authserver;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebFilter;
@@ -20,20 +20,22 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.security.oauth2.core.http.converter.OAuth2ErrorHttpMessageConverter;
+import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 
@@ -42,11 +44,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class OAuthTokenEndpointFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthTokenEndpointFilter.class);
-    
+
     private final HttpMessageConverter<OAuth2AccessTokenResponse> tokenResponseConverter =
             new OAuth2AccessTokenResponseHttpMessageConverter();
     private final HttpMessageConverter<OAuth2Error> errorResponseConverter =
             new OAuth2ErrorHttpMessageConverter();
+
+    private AuthenticationConverter authenticationConverter;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -58,24 +62,65 @@ public class OAuthTokenEndpointFilter extends OncePerRequestFilter {
     private AuthenticationFailureHandler authenticationFailureHandler = this::sendErrorResponse;
 
 
+    @PostConstruct
+    @Override
+    public void afterPropertiesSet() throws ServletException {
+        super.afterPropertiesSet();
+
+        AuthenticationConverter basicAuthenticationConverter = new OAuth2ClientSecretBasicAuthenticationConverter();
+        AuthenticationConverter postAuthenticationConverter = new OAuth2ClientSecretPostAuthenticationConverter();
+        this.authenticationConverter = new OAuth2ClientSecretDelegatingAuthenticationConverter(
+                Arrays.asList(basicAuthenticationConverter, postAuthenticationConverter), true);
+    }
+
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        OAuth2ClientCredentialsAuthenticationToken authenticationToken =
-                new OAuth2ClientCredentialsAuthenticationToken(new UsernamePasswordAuthenticationToken("my-client-id", "my-client-secret"),
-                        ClientAuthenticationMethod.CLIENT_SECRET_BASIC, Set.of("aaa", "bbb", "ccc"),
-                        Collections.emptyMap());
-        OAuth2AccessTokenAuthenticationToken accessToken =
-                (OAuth2AccessTokenAuthenticationToken) this.authenticationManager.authenticate(authenticationToken);
+        try {
+            this.validateGrantType(request);
 
-        logger.debug("accessToken=" + accessToken);
+            OAuth2ClientCredentialsAuthenticationToken authenticationToken =
+                    (OAuth2ClientCredentialsAuthenticationToken) this.authenticationConverter.convert(request);
 
-        if (accessToken != null) {
+            if (authenticationToken == null) {
+                throw this.exceptionHelper.authenticationException(logger, OAuth2ErrorCodes.INVALID_REQUEST,
+                        "HTTP request does not contain authorization header or parameters");
+            }
+
+            OAuth2AccessTokenAuthenticationToken accessToken =
+                    (OAuth2AccessTokenAuthenticationToken) this.authenticationManager.authenticate(authenticationToken);
+
+            logger.debug("accessToken=" + accessToken);
+
             this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, accessToken);
-        } else {
-            OAuth2AuthenticationException ex = this.exceptionHelper
-                    .authenticationException(OAuth2ErrorCodes.INVALID_REQUEST);
+        } catch (OAuth2AuthenticationException ex) {
             this.authenticationFailureHandler.onAuthenticationFailure(request, response, ex);
+        }
+
+    }
+
+
+    private void validateGrantType(HttpServletRequest request) {
+        String[] grantTypeValues = request.getParameterValues(OAuth2ParameterNames.GRANT_TYPE);
+        if (grantTypeValues == null) {
+            throw this.exceptionHelper.authenticationException(logger, OAuth2ErrorCodes.INVALID_REQUEST,
+                    "Request parameter 'grant_type' is not available");
+        }
+        if (grantTypeValues.length != 1) {
+            throw this.exceptionHelper.authenticationException(logger, OAuth2ErrorCodes.INVALID_REQUEST,
+                    "More than 1 request parameter 'grant_type'");
+        }
+        String grantType = grantTypeValues[0];
+        if (!StringUtils.hasText(grantType)) {
+            throw this.exceptionHelper.authenticationException(logger, OAuth2ErrorCodes.INVALID_REQUEST,
+                    "Value of the request parameter 'grant_type' is not available or is an empty string");
+        }
+
+        if (!AuthorizationGrantType.CLIENT_CREDENTIALS.getValue().equals(grantType)) {
+            // This request is not for a client credentials.
+            throw this.exceptionHelper.authenticationException(logger, OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE,
+                    "Unsupported 'grant_type': " + grantType);
         }
     }
 

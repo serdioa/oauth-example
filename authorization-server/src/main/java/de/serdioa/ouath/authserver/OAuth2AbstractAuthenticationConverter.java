@@ -17,8 +17,6 @@ public abstract class OAuth2AbstractAuthenticationConverter implements Authentic
 
 
     protected OAuth2AuthenticationException invalidRequest(String description) {
-        String id = this.exceptionHelper.nextExceptionId();
-        logger.info("{}: {}", id, description);
-        return this.exceptionHelper.authenticationException(OAuth2ErrorCodes.INVALID_REQUEST, id, description);
+        return this.exceptionHelper.authenticationException(this.logger, OAuth2ErrorCodes.INVALID_REQUEST, description);
     }
 }

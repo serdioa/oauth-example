@@ -7,8 +7,11 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
+import lombok.Setter;
+import org.slf4j.Logger;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 
 
 public class OAuth2ExceptionHelper {
@@ -20,7 +23,10 @@ public class OAuth2ExceptionHelper {
     private static final String OAUTH2_ERROR_DESCRIPTION_URI =
             "https://datatracker.ietf.org/doc/html/rfc6749#section-5.2";
 
+    @Setter
     private Random rnd = new SecureRandom();
+
+    @Setter
     private int numBits = 128;
 
 
@@ -59,5 +65,12 @@ public class OAuth2ExceptionHelper {
     public OAuth2AuthenticationException authenticationException(String errorCode, String id, String description) {
         OAuth2Error error = this.error(errorCode, id, description);
         return new OAuth2AuthenticationException(error);
+    }
+
+
+    public OAuth2AuthenticationException authenticationException(Logger logger, String errorCode, String description) {
+        String id = this.nextExceptionId();
+        logger.info("{}: {}", id, description);
+        return this.authenticationException(errorCode, id, description);
     }
 }

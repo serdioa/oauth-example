@@ -3,7 +3,6 @@ package de.serdioa.ouath.authserver;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.StringUtils;
@@ -23,12 +22,6 @@ public class OAuth2ClientSecretPostAuthenticationConverter extends OAuth2ClientS
 
     @Override
     protected Authentication convertClientPrincipal(HttpServletRequest request) {
-        String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
-        if (AuthorizationGrantType.CLIENT_CREDENTIALS.equals(grantType)) {
-            // This request is not for a client credentials.
-            return null;
-        }
-
         String[] clientIdParameters = request.getParameterValues(OAuth2ParameterNames.CLIENT_ID);
         if (clientIdParameters == null) {
             // This request does not contain OAuth2 Client Secret authorization parameters at all.
