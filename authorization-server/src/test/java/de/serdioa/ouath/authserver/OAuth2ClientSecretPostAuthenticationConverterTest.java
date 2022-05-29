@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -161,5 +164,76 @@ public class OAuth2ClientSecretPostAuthenticationConverterTest {
                 (OAuth2ClientCredentialsAuthenticationToken) this.converter.convert(this.request);
         assertEquals(clientId, token.getPrincipal());
         assertEquals(clientSecret, token.getCredentials());
+    }
+
+
+    // The request does not contain any scopes.
+    @Test
+    public void testConvertNoScopes() {
+        this.request.addParameter(OAuth2ParameterNames.CLIENT_ID, "aBc");
+        this.request.addParameter(OAuth2ParameterNames.CLIENT_SECRET, "DeF");
+
+        OAuth2ClientCredentialsAuthenticationToken token =
+                (OAuth2ClientCredentialsAuthenticationToken) this.converter.convert(this.request);
+
+        assertEquals(Collections.emptySet(), token.getScopes());
+    }
+
+
+    // The request contains a single scope.
+    @Test
+    public void testConvertOneScope() {
+        this.request.addParameter(OAuth2ParameterNames.CLIENT_ID, "aBc");
+        this.request.addParameter(OAuth2ParameterNames.CLIENT_SECRET, "DeF");
+        this.request.addParameter(OAuth2ParameterNames.SCOPE, "scope_A");
+
+        OAuth2ClientCredentialsAuthenticationToken token =
+                (OAuth2ClientCredentialsAuthenticationToken) this.converter.convert(this.request);
+
+        assertEquals(Set.of("scope_A"), token.getScopes());
+    }
+
+
+    // The request contains multiple scopes.
+    @Test
+    public void testConvertMultipleScopes() {
+        this.request.addParameter(OAuth2ParameterNames.CLIENT_ID, "aBc");
+        this.request.addParameter(OAuth2ParameterNames.CLIENT_SECRET, "DeF");
+        this.request.addParameter(OAuth2ParameterNames.SCOPE, "scope_A scope_B scope_C");
+
+        OAuth2ClientCredentialsAuthenticationToken token =
+                (OAuth2ClientCredentialsAuthenticationToken) this.converter.convert(this.request);
+
+        assertEquals(Set.of("scope_A", "scope_B", "scope_C"), token.getScopes());
+    }
+
+
+    // The request contains multiple scopes with multiple spaces as separators.
+    @Test
+    public void testConvertMultipleScopesMultipleWhitespaces() {
+        this.request.addParameter(OAuth2ParameterNames.CLIENT_ID, "aBc");
+        this.request.addParameter(OAuth2ParameterNames.CLIENT_SECRET, "DeF");
+        this.request.addParameter(OAuth2ParameterNames.SCOPE, " scope_A   scope_B   scope_C ");
+
+        OAuth2ClientCredentialsAuthenticationToken token =
+                (OAuth2ClientCredentialsAuthenticationToken) this.converter.convert(this.request);
+
+        assertEquals(Set.of("scope_A", "scope_B", "scope_C"), token.getScopes());
+    }
+
+
+    // The request contains the parameter 'scope' more than once.
+    @Test
+    public void testConvertMultipleScopeParameters() {
+        this.request.addParameter(OAuth2ParameterNames.CLIENT_ID, "aBc");
+        this.request.addParameter(OAuth2ParameterNames.CLIENT_SECRET, "DeF");
+        this.request.addParameter(OAuth2ParameterNames.SCOPE, "scope_A");
+        this.request.addParameter(OAuth2ParameterNames.SCOPE, "scope_B");
+
+        OAuth2AuthenticationException ex = assertThrows(OAuth2AuthenticationException.class, () -> {
+            this.converter.convert(this.request);
+        });
+
+        assertEquals(OAuth2ErrorCodes.INVALID_REQUEST, ex.getError().getErrorCode());
     }
 }

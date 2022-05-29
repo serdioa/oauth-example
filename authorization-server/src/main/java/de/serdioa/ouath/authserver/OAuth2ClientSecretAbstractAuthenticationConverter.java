@@ -1,6 +1,8 @@
 package de.serdioa.ouath.authserver;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +16,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.web.authentication.AuthenticationConverter;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -63,7 +66,22 @@ public abstract class OAuth2ClientSecretAbstractAuthenticationConverter implemen
 
 
     protected Set<String> convertScopes(HttpServletRequest request) {
-        return Collections.emptySet();
+        final String[] scopeValues = request.getParameterValues(OAuth2ParameterNames.SCOPE);
+        if (scopeValues == null) {
+            // Scope is optional in the request.
+            return Collections.emptySet();
+        }
+
+        if (scopeValues.length != 1) {
+            throw invalidRequest("More than 1 request parameter 'scope'");
+        }
+
+        if (!StringUtils.hasText(scopeValues[0])) {
+            throw invalidRequest("Request parameter 'scope' is an empty string");
+        }
+
+        String[] scopes = scopeValues[0].trim().split("\\s+");
+        return Set.of(scopes);
     }
 
 
