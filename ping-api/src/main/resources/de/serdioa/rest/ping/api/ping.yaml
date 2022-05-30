@@ -12,6 +12,9 @@ paths:
       summary: Simple ping.
       tags:
         - ping
+      security:
+        - OAuth2:
+          - read
       responses:
         '200':
           description: Sample pong response
@@ -23,6 +26,9 @@ paths:
       summary: Ping with an optional token.
       tags:
         - ping
+      security:
+        - OAuth2:
+          - write
       parameters:
           - name: token
             in: query
@@ -55,3 +61,12 @@ components:
           type: string
           example: "pong"
           description: "Ping token"
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: http://localhost:8070/oauth2/token
+          scopes:
+            read: Grant read-only access to the data
+            write: Grant write access to the data

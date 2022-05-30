@@ -14,11 +14,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.OAuthFlow;
+import io.swagger.v3.oas.annotations.security.OAuthFlows;
+import io.swagger.v3.oas.annotations.security.OAuthScope;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
+
 
 /**
  * Home redirection to OpenAPI api documentation
  */
 @Controller
+@OpenAPIDefinition(info =
+        @Info(title = "Ping API"))
+@SecurityScheme(name = "OAuth2", type = SecuritySchemeType.OAUTH2,
+        flows =
+        @OAuthFlows(
+                clientCredentials =
+                @OAuthFlow(
+                        tokenUrl = "http://localhost:8070/oauth2/token",
+                        scopes = {
+                            @OAuthScope(name = "read", description = "Test rest scope"),
+                            @OAuthScope(name = "write", description = "Test write scope")
+                        }
+                )
+        )
+)
 public class OpenAPIDocumentationConfig {
 
     private static final YAMLMapper yamlMapper = new YAMLMapper();
