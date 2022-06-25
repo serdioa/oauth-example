@@ -121,6 +121,12 @@
                 <scope>test</scope>
             </dependency>
 
+            <dependency>
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>1.3.2</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -143,6 +149,7 @@
         <module>ping-api-client</module>
         <module>ping-api-server-codegen</module>
         <module>ping-api-server-impl</module>
+        <module>spring-boot-crypto-autoconfigure</module>
     </modules>
 
 </project>

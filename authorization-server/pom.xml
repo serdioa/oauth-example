@@ -16,6 +16,12 @@
 
     <dependencies>
 
+        <dependency>
+            <groupId>de.serdioa.oauth</groupId>
+            <artifactId>spring-boot-crypto-autoconfigure</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Use Jetty as a servlet container -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

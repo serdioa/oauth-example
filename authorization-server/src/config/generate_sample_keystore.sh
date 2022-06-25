@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Clean up
-rm *.pem *.crt
+rm *.pem *.crt *.pkx *.jks
 
 # (1)
 # Generate a public and private keys (RSA, 2048 bit), valid for 720 days.
@@ -19,3 +19,14 @@ openssl pkcs12 -export -inkey rsa-2048-sample.pem -in rsa-2048-sample.crt \
 # (3)
 # List available keys.
 keytool -list -keystore oauth.pkx
+
+# (4)
+# Convert to a JKS keystore.
+keytool -importkeystore \
+        -destkeystore oauth.jks -deststoretype JKS   -deststorepass tiger202206 -destkeypass tiger202206 \
+        -srckeystore  oauth.pkx -srcstoretype PKCS12 -srcstorepass tiger202206 \
+        -alias oauth202206
+
+# (5)
+# List available keys.
+keytool -list -keystore oauth.jks
