@@ -58,4 +58,9 @@ public class KeyStoreHolder {
         KeyStore.PrivateKeyEntry entry = this.getPrivateKeyEntry(alias, password);
         return entry.getPrivateKey();
     }
+
+
+    public KeyStore getKeyStore() {
+        return this.keyStore;
+    }
 }

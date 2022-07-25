@@ -18,6 +18,9 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 
+/**
+ * Test creating and parsing a JWT token using Nimbus library with a Java Security key store.
+ */
 public class JwtTestNimbusKeystore {
 
     private KeyStoreHolder keyStoreHolder;
@@ -37,10 +40,10 @@ public class JwtTestNimbusKeystore {
     }
 
 
-    private void setup() throws Exception {
+    public void setup() throws Exception {
         Security.addProvider(BouncyCastleProviderSingleton.getInstance());
 
-        this.keyStoreHolder = new KeyStoreHolder("PKCS12", "BC", "src/config/oauth.pkx", "scott123".toCharArray());
+        this.keyStoreHolder = new KeyStoreHolder("PKCS12", "BC", "src/config/oauth.pkx", "tiger202206".toCharArray());
 
         X509Certificate cert = this.keyStoreHolder.getCertificate("oauth202206");
         System.out.println("cert:");
@@ -48,15 +51,15 @@ public class JwtTestNimbusKeystore {
         System.out.println("    notBefore: " + cert.getNotBefore());
         System.out.println("    notAfter: " + cert.getNotBefore());
 
-        PrivateKey key = this.keyStoreHolder.getPrivateKey("oauth202206", "scott123".toCharArray());
+        PrivateKey key = this.keyStoreHolder.getPrivateKey("oauth202206", "tiger202206".toCharArray());
         System.out.println("key:");
         System.out.println("    alg: " + key.getAlgorithm());
     }
 
 
-    private String buildJwtToken() throws Exception {
+    public String buildJwtToken() throws Exception {
         String keyId = "oauth202206";
-        PrivateKey key = this.keyStoreHolder.getPrivateKey(keyId, "scott123".toCharArray());
+        PrivateKey key = this.keyStoreHolder.getPrivateKey(keyId, "tiger202206".toCharArray());
 
         JWSSigner signer = new RSASSASigner(key);
         signer.getJCAContext().setProvider(BouncyCastleProviderSingleton.getInstance());
@@ -79,7 +82,7 @@ public class JwtTestNimbusKeystore {
     }
 
 
-    private void testJwtToken(String token) throws Exception {
+    public void testJwtToken(String token) throws Exception {
         X509Certificate cert = this.keyStoreHolder.getCertificate("oauth202206");
         RSAPublicKey key = (RSAPublicKey) cert.getPublicKey();
 
