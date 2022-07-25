@@ -11,7 +11,6 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
-import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 
 
 public class OAuth2ExceptionHelper {
