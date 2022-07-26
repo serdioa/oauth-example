@@ -1,5 +1,10 @@
 package de.serdioa.ouath.authserver;
 
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+
+import de.serdioa.ouath.authserver.token.JwtAccessTokenBuilder;
+import de.serdioa.ouath.authserver.token.JwtAccessTokenBuilderProperties;
 import de.serdioa.spring.crypto.keystore.KeyStoreFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -32,8 +37,22 @@ public class Application {
 
 
     @Bean
-    @ConfigurationProperties(prefix = "security.keystore.oauth2")
+    @ConfigurationProperties(prefix = "spring.security.oauth2.authenticationserver.keystore")
     public KeyStoreFactory oauth2KeyStore() {
         return new KeyStoreFactory();
+    }
+
+
+    @Bean
+    @ConfigurationProperties(prefix = "spring.security.oauth2.authenticationserver.token")
+    public JwtAccessTokenBuilderProperties jwtAccessTokenBuilderProperties() {
+        return new JwtAccessTokenBuilderProperties();
+    }
+
+
+    @Bean
+    public JwtAccessTokenBuilder oauth2TokenBuilder(KeyStore oauth2KeyStore,
+            JwtAccessTokenBuilderProperties tokenBuilderProperties) throws KeyStoreException {
+        return new JwtAccessTokenBuilder(oauth2KeyStore, tokenBuilderProperties);
     }
 }
