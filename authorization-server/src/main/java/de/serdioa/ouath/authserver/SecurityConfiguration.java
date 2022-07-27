@@ -20,10 +20,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .permitAll();
 
         http.csrf().disable();
+
+        // Enable CORS (Cross-Origin Resource Sharing) to make possible to call the OAuth2 endpoints from Swagger
+        // hosted on a different host or port. The CORS configuration is provided by the method
+        // Application.corsConfigurer().s
         http.cors();
     }
 
 
+    // By default the Spring Authentication Manager is used internally, but is not available as a Spring Bean.
+    // Configure Spring to register the Authentication Manager is a Spring Bean, so that it may be injected in other
+    // beans.
     @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {

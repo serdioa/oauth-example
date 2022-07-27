@@ -12,6 +12,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
 @SpringBootApplication
@@ -54,5 +57,18 @@ public class Application {
     public JwtAccessTokenBuilder oauth2TokenBuilder(KeyStore oauth2KeyStore,
             JwtAccessTokenBuilderProperties tokenBuilderProperties) throws KeyStoreException {
         return new JwtAccessTokenBuilder(oauth2KeyStore, tokenBuilderProperties);
+    }
+
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/oauth2/**")
+                        .allowedMethods(HttpMethod.POST.name())
+                        .allowedOrigins("*");
+            }
+        };
     }
 }
