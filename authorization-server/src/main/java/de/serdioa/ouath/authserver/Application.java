@@ -47,7 +47,7 @@ public class Application {
 
 
     @Bean
-    @ConfigurationProperties(prefix = "spring.security.oauth2.authenticationserver.token")
+    @ConfigurationProperties(prefix = "spring.security.oauth2.authenticationserver.jwt")
     public JwtAccessTokenBuilderProperties jwtAccessTokenBuilderProperties() {
         return new JwtAccessTokenBuilderProperties();
     }

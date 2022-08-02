@@ -3,6 +3,7 @@ package de.serdioa.ouath.authserver.token;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -21,6 +22,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 
 /**
@@ -47,10 +49,11 @@ public class JwtAccessTokenBuilder implements OAuth2TokenBuilder<OAuth2AccessTok
     public JwtAccessTokenBuilder(KeyStore keyStore, JwtAccessTokenBuilderProperties config) throws KeyStoreException {
         Assert.notNull(keyStore, "keyStore cannot be null");
         Assert.notNull(config, "config cannot be null");
-        Assert.notNull(config.getSignatureAlgorithm(), "signatureAlgorithm cannot be null");
+        Assert.notNull(config.getJwsAlgorithm(), "jwsAlgorithm cannot be null");
         Assert.notNull(config.getSignatureKeyId(), "signatureKeyId cannot be null");
         Assert.notNull(config.getIssuer(), "issuer cannot be null");
         Assert.notNull(config.getTokenDuration(), "tokenDuration cannot be null");
+        // The property "audiences" is optional.
 
         this.keyStore = keyStore;
         this.config = config;
@@ -60,7 +63,7 @@ public class JwtAccessTokenBuilder implements OAuth2TokenBuilder<OAuth2AccessTok
         this.jwtEncoder = new NimbusJwtEncoder(jwkSource);
 
         // Cache the shared JWT token header.
-        this.jwsHeader = JwsHeader.with(config.getSignatureAlgorithm())
+        this.jwsHeader = JwsHeader.with(config.getJwsAlgorithm())
                 .keyId(config.getSignatureKeyId())
                 .type(TOKEN_HEADER_TYPE)
                 .build();
@@ -81,15 +84,22 @@ public class JwtAccessTokenBuilder implements OAuth2TokenBuilder<OAuth2AccessTok
 
         Consumer<Map<String, Object>> claimsCustomizer = this.buildClaimsCustomizer(context);
 
-        JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
+        JwtClaimsSet.Builder jwtClaimsSetBuilder = JwtClaimsSet.builder()
                 .id(UUID.randomUUID().toString())
                 .subject(context.getAuthentication().getName())
                 .issuer(config.getIssuer())
                 .issuedAt(now)
                 .notBefore(now)
                 .expiresAt(now.plus(config.getTokenDuration()))
-                .claims(claimsCustomizer)
-                .build();
+                .claims(claimsCustomizer);
+
+        // The property "audiences" is optional.
+        List<String> audiences = this.config.getAudiences();
+        if (!CollectionUtils.isEmpty(audiences)) {
+            jwtClaimsSetBuilder.audience(audiences);
+        }
+
+        JwtClaimsSet jwtClaimsSet = jwtClaimsSetBuilder.build();
 
         JwtEncoderParameters jwtEncoderParameters = JwtEncoderParameters.from(this.jwsHeader, jwtClaimsSet);
         Jwt jwt = this.jwtEncoder.encode(jwtEncoderParameters);
