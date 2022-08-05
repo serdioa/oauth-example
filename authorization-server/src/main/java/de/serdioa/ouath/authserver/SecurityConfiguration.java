@@ -23,7 +23,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         // Enable CORS (Cross-Origin Resource Sharing) to make possible to call the OAuth2 endpoints from Swagger
         // hosted on a different host or port. The CORS configuration is provided by the method
-        // Application.corsConfigurer().s
+        // Application.corsConfigurer().
         http.cors();
     }
 
