@@ -47,8 +47,39 @@ paths:
         '400':
           description: Validation error
 
+  /rest/v1/pingbody:
+    post:
+      summary: Ping with JSON body in request
+      tags:
+        - ping
+      security:
+        - OAuth2:
+          - write
+      requestBody:
+        description: Sample ping request
+        content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Ping"
+      responses:
+        '200':
+          description: Sample pong response
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Pong"
+        '400':
+          description: Validation error
+
 components:
   schemas:
+    Ping:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "ping"
+          description: "Ping token"
     Pong:
       type: object
       properties:
