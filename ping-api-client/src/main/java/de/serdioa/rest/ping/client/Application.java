@@ -4,29 +4,21 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
 
-import de.serdioa.rest.ping.ApiClient;
-import de.serdioa.rest.ping.api.PingApi;
-import de.serdioa.rest.ping.model.Pong;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.serdioa.rest.generated.ping.client.ApiClient;
+import de.serdioa.rest.generated.ping.client.api.PingApi;
+import de.serdioa.rest.generated.ping.client.model.Pong;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -37,9 +29,10 @@ public class Application implements CommandLineRunner {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-    
+
     private ApiClient apiClient;
     private PingApi pingApi;
+
 
     @Override
     public void run(String... args) throws Exception {
@@ -51,26 +44,27 @@ public class Application implements CommandLineRunner {
                 .scope("read", "write")
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 .build();
-        
+
         ReactiveClientRegistrationRepository clientRegistrationRespository =
                 new InMemoryReactiveClientRegistrationRepository(clientRegistration);
-        
+
         InMemoryReactiveOAuth2AuthorizedClientService clientService =
                 new InMemoryReactiveOAuth2AuthorizedClientService(clientRegistrationRespository);
-        
+
         AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager clientManager =
                 new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(clientRegistrationRespository, clientService);
 
-        ServerOAuth2AuthorizedClientExchangeFilterFunction oauth = new ServerOAuth2AuthorizedClientExchangeFilterFunction(clientManager);
+        ServerOAuth2AuthorizedClientExchangeFilterFunction oauth =
+                new ServerOAuth2AuthorizedClientExchangeFilterFunction(clientManager);
         oauth.setDefaultClientRegistrationId("test");
-        
+
         WebClient webClient = WebClient.builder()
                 .filter(oauth)
                 .build();
-        
+
         this.apiClient = new ApiClient(webClient);
         this.apiClient.setBasePath("http://localhost:8080");
-        
+
         this.pingApi = new PingApi(this.apiClient);
 
         while (this.parseAndProcessCommand()) {
@@ -101,20 +95,20 @@ public class Application implements CommandLineRunner {
         }
         return true;
     }
-    
-    
+
+
     private void get() {
         Mono<Pong> response = this.pingApi.restV1PingGet();
         this.processResponse(response);
     }
-    
-    
+
+
     private void post(final String token) {
         Mono<Pong> response = this.pingApi.restV1PingPost(token);
         this.processResponse(response);
     }
-    
-    
+
+
     private void processResponse(final Mono<Pong> response) {
         try {
             Pong pong = response.block();

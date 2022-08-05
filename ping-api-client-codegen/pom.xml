@@ -80,7 +80,7 @@
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>5.4.0</version>
+                <version>6.0.1</version>
                 <executions>
                     <execution>
                         <id>generate-swagger</id>
@@ -91,11 +91,18 @@
                         <configuration>
                             <inputSpec>${project.build.directory}/swagger/ping-api/de/serdioa/rest/ping/api/ping.yaml</inputSpec>
                             <generatorName>java</generatorName>
-                            <modelPackage>de.serdioa.rest.ping.model</modelPackage>
-                            <apiPackage>de.serdioa.rest.ping.api</apiPackage>
+                            <modelPackage>de.serdioa.rest.generated.ping.client.model</modelPackage>
+                            <apiPackage>de.serdioa.rest.generated.ping.client.api</apiPackage>
 
                             <generateApis>true</generateApis>
                             <generateModels>true</generateModels>
+
+                            <!--
+                            <<generateApiTests>false</generateApiTests>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateModelTests>false</generateModelTests>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            -->
 
                             <!--
                             <configHelp>true</configHelp>
