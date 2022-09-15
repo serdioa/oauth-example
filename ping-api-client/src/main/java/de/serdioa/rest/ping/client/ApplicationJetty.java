@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.function.Function;
 
 import de.serdioa.rest.generated.ping.client.ApiClient;
 import de.serdioa.rest.generated.ping.client.api.PingApi;
@@ -18,6 +20,7 @@ import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.http.client.reactive.JettyClientHttpConnector;
+import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -26,6 +29,7 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 
@@ -70,11 +74,10 @@ public class ApplicationJetty implements CommandLineRunner {
         };
 
         WebClient webClient = WebClient.builder()
-                //                .filter(new VerboseExchangeFilterFunction())
                 .filter(oauth)
                 .clientConnector(new JettyClientHttpConnector(httpClient))
                 .build();
-
+        
         this.apiClient = new ApiClient(webClient);
         this.apiClient.setBasePath("http://localhost:8080");
 
@@ -190,12 +193,32 @@ public class ApplicationJetty implements CommandLineRunner {
 
     private void processResponse(final Mono<Pong> response) {
         try {
-            Pong pong = response.block();
+            Mono<Pong> translatedResponse = this.translateException(response);
+            Pong pong = translatedResponse.block();
+
             System.out.printf("Response:%n");
             System.out.printf("    token: %s%n", pong.getToken());
             System.out.printf("    timestamp: %s%n", pong.getTimestamp());
         } catch (Exception ex) {
-            System.out.printf("Response exception: %s%n", ex.getMessage());
+            System.out.printf("Response exception %s: %s%n", ex.getClass(), ex.getMessage());
         }
+    }
+
+
+    private Mono<Pong> translateException(final Mono<Pong> response) {
+        return response.map(t -> t).onErrorResume(ex -> {
+            return (ex instanceof WebClientResponseException);
+        }, ex -> {
+            if (ex instanceof WebClientResponseException) {
+                WebClientResponseException webClientException = (WebClientResponseException) ex;
+                String body = webClientException.getResponseBodyAsString();
+
+                return Mono.error(new IllegalArgumentException(body));
+                
+                // return Mono.just(fallback);
+            } else {
+                return Mono.error(ex);
+            }
+        });
     }
 }

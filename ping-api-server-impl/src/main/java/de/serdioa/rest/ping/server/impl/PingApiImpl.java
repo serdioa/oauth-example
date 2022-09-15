@@ -53,7 +53,11 @@ public class PingApiImpl implements PingApiDelegate {
         pong.setTimestamp(OffsetDateTime.now());
         pong.setToken(token != null ? token : DEFAULT_TOKEN);
 
-        return ResponseEntity.ok(pong);
+        if (token.equals("error")) {
+            return ResponseEntity.badRequest().body(pong);
+        } else {
+            return ResponseEntity.ok(pong);
+        }
     }
 
 
@@ -68,6 +72,10 @@ public class PingApiImpl implements PingApiDelegate {
         pong.setTimestamp(OffsetDateTime.now());
         pong.setToken(token != null ? token : DEFAULT_TOKEN);
 
-        return ResponseEntity.ok(pong);
+        if (token.startsWith("error")) {
+            return ResponseEntity.badRequest().body(pong);
+        } else {
+            return ResponseEntity.ok(pong);
+        }
     }
 }
