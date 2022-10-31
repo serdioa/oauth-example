@@ -16,7 +16,10 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.client.reactive.JettyClientHttpConnector;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
@@ -32,13 +35,23 @@ import reactor.core.publisher.Mono;
 
 // https://andrew-flower.com/blog/webclient-body-logging
 // https://dev.to/stevenpg/logging-with-spring-webclient-2j6o
-public class ApplicationJetty implements CommandLineRunner {
+@SpringBootApplication
+public class ApplicationJetty {
 
     private ApiClient apiClient;
     private PingApi pingApi;
 
 
+    public static void main(String[] args) throws Exception {
+        new ApplicationJetty().run(args);
+    }
+
+
     public void run(String... args) throws Exception {
+        ConfigurableApplicationContext ctx = new SpringApplicationBuilder(ApplicationJetty.class)
+                .web(WebApplicationType.NONE)
+                .run(args);
+
         ClientRegistration clientRegistration = ClientRegistration
                 .withRegistrationId("test")
                 .tokenUri("http://localhost:8070/oauth2/token")
@@ -70,13 +83,15 @@ public class ApplicationJetty implements CommandLineRunner {
             }
         };
 
-        WebClient webClient = WebClient.builder()
+        WebClient.Builder webClientBuilder = ctx.getBean(WebClient.Builder.class);
+        WebClient webClient = webClientBuilder
                 .filter(oauth)
                 .clientConnector(new JettyClientHttpConnector(httpClient))
                 .build();
-        
+
         this.apiClient = new ApiClient(webClient);
-        this.apiClient.setBasePath("http://localhost:8080");
+//         this.apiClient.setBasePath("http://localhost:8080");
+        this.apiClient.setBasePath("http://ping-service");
 
         this.pingApi = new PingApi(this.apiClient);
 
@@ -211,7 +226,7 @@ public class ApplicationJetty implements CommandLineRunner {
                 String body = webClientException.getResponseBodyAsString();
 
                 return Mono.error(new IllegalArgumentException(body));
-                
+
                 // return Mono.just(fallback);
             } else {
                 return Mono.error(ex);

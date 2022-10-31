@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 // https://andrew-flower.com/blog/webclient-body-logging
 // https://dev.to/stevenpg/logging-with-spring-webclient-2j6o
-@SpringBootApplication
+// @SpringBootApplication
 public class Application implements CommandLineRunner {
 
     public static void main(String[] args) {
@@ -17,6 +17,6 @@ public class Application implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        new ApplicationJetty().run(args);
+//        new ApplicationSpringBoot().run(args);
     }
 }
