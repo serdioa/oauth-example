@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.time.OffsetDateTime;
 import java.util.Arrays;
-import java.util.function.Function;
 
 import de.serdioa.rest.generated.ping.client.ApiClient;
 import de.serdioa.rest.generated.ping.client.api.PingApi;
@@ -20,7 +18,6 @@ import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.http.client.reactive.JettyClientHttpConnector;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
