@@ -211,6 +211,7 @@
         <module>ping-api-server-codegen</module>
         <module>ping-api-server-impl</module>
         <module>spring-boot-crypto-autoconfigure</module>
+        <module>spring-boot-webclient-autoconfigure</module>
     </modules>
 
 </project>
